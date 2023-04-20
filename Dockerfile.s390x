@@ -1,0 +1,11 @@
+FROM golang:1.16-alpine
+
+RUN apk update && apk add --no-cache git make ca-certificates && \
+    update-ca-certificates
+
+WORKDIR /go/src/github.com/ory/kratos
+
+COPY . .
+
+RUN make build-s390x
+
