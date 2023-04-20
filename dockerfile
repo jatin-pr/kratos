@@ -1,27 +1,11 @@
-# Start from the official Golang image
-# This image will pull the latest version of Golang
-FROM golang:latest AS builder
-
-# Set the current working directory inside the container
+FROM --platform=linux/s390x golang:1.17.5-alpine3.14 AS build
 WORKDIR /build
-
-# Copy the entire project directory into the container
-COPY . .
-
-# Download all dependencies
+COPY go.mod go.sum ./
 RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=s390x go build -a -ldflags '-extldflags "-static"' -o /bin/kratos ./cmd/kratos
 
-# Build the binary
-RUN go build -o main .
-
-# Start from a fresh Alpine image
-FROM alpine:latest
-
-# Copy the binary from the builder image into the Alpine image
-COPY --from=builder /build/main /usr/bin/app
-
-# Expose port 8080
-EXPOSE 8080
-
-# Set the entrypoint of the container to the binary
-ENTRYPOINT ["app"]
+FROM --platform=linux/s390x alpine:3.14
+RUN apk --no-cache add ca-certificates
+COPY --from=build /bin/kratos /bin/kratos
+ENTRYPOINT ["/bin/kratos"]
