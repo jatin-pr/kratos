@@ -1,0 +1,28 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Configure Docker
+      uses: docker/setup-buildx-action@v1
+      with:
+        driver-opts: network=host
+
+    - name: Build Docker Image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: false
+        platforms: linux/s390x
+        tags: ory/kratos:s390x-latest
